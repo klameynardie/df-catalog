@@ -1,0 +1,476 @@
+{
+  "meta": {
+    "name": "Deco-Flamme Inspired Design System",
+    "version": "1.0.0",
+    "brandKeywords": [
+      "événementiel luxe",
+      "élégant",
+      "raffiné",
+      "minimaliste",
+      "éditorial",
+      "photographie immersive"
+    ],
+    "description": "Design system haut de gamme inspiré du site Deco Flamme : grande place laissée aux visuels, typographies éditoriales, contrastes forts noir/blanc, accents rouges, et mise en page très aérée."
+  },
+  "principles": {
+    "toneOfVoice": {
+      "summary": "Luxe discret, professionnel, confiant.",
+      "details": [
+        "Utiliser un ton sobre, assuré, sans superlatifs excessifs.",
+        "Préférer des phrases courtes et claires, au présent.",
+        "Accent sur l’expertise, l’excellence et la créativité sur-mesure."
+      ]
+    },
+    "visualPrinciples": [
+      "Toujours privilégier de grandes images immersives pleine largeur, avec textes superposés de manière lisible.",
+      "Utiliser une grille claire et symétrique (3 colonnes, 2 colonnes, ou centre unique) avec beaucoup d’espace blanc.",
+      "Le contraste principal est noir sur blanc ; les couleurs vives (rouge, or) servent uniquement d’accents ou dans les photos.",
+      "Typo éditoriale : grands titres en serif condensé, corps de texte en sans-serif moderne.",
+      "Alignements centralisés pour les sections clés (hero, sections de storytelling, statistiques) afin de renforcer le côté institutionnel et premium.",
+      "Les icônes sont fines, en outline noir, très simples, sans remplissage coloré.",
+      "Toujours contrôler la hiérarchie typographique : 1 seul style de titre dominant par section, pas plus de 2 tailles significatives dans un même bloc.",
+      "Les boutons sont géométriques, avec contours précis, sans coins très arrondis (rayon léger), et des textes en majuscules.",
+      "Interactions discrètes : opacité, légère translation ou zoom sur les images, jamais de grosses ombres colorées ou d’animations agressives."
+    ],
+    "layoutPrinciples": [
+      "Marge horizontale généreuse : sur desktop, le contenu principal est généralement centré avec des marges latérales importantes pour éviter que le texte touche les bords.",
+      "Les sections verticales sont bien séparées avec beaucoup de padding top/bottom pour donner un rythme respirant à la page.",
+      "Les lignes et séparateurs sont discrets (fins, gris clair) et servent à structurer les cartes et la grille de services.",
+      "Préférer des compositions plein écran pour les heros et galeries, avec overlay sombre pour rendre le texte lisible."
+    ]
+  },
+  "theme": {
+    "colors": {
+      "description": "Palette dominée par le noir, le blanc et le gris, avec touches de rouge profond inspiré des photos d’événements.",
+      "base": {
+        "background": "#FFFFFF",
+        "surface": "#FFFFFF",
+        "surfaceMuted": "#F7F7F7",
+        "overlayDark": "rgba(0, 0, 0, 0.55)"
+      },
+      "text": {
+        "primary": "#111111",
+        "secondary": "#555555",
+        "muted": "#888888",
+        "onDark": "#FFFFFF"
+      },
+      "brand": {
+        "primary": "#B11226",
+        "primaryDark": "#7E0C1B",
+        "primarySoft": "#FBE8EC"
+      },
+      "border": {
+        "subtle": "#E0E0E0",
+        "strong": "#111111",
+        "onDark": "rgba(255, 255, 255, 0.5)"
+      },
+      "states": {
+        "hover": "rgba(0, 0, 0, 0.06)",
+        "pressed": "rgba(0, 0, 0, 0.12)",
+        "focusRing": "rgba(177, 18, 38, 0.5)"
+      }
+    },
+    "typography": {
+      "description": "Combinaison d’un serif éditorial pour les grands titres et d’un sans-serif moderne pour les navigations, boutons et longs textes.",
+      "fonts": {
+        "displaySerif": {
+          "family": "\"Playfair Display\", \"Cormorant Garamond\", \"Times New Roman\", serif",
+          "usage": "Titres hero, titres de sections majeures comme 'DECO FLAMME' ou 'GALERIE PHOTO'.",
+          "features": [
+            "Lettrage fin à moyen.",
+            "Interlettre légèrement augmentée pour les titres en capitales.",
+            "Aspect éditorial / magazine."
+          ]
+        },
+        "headingSans": {
+          "family": "\"Montserrat\", \"Raleway\", \"Helvetica Neue\", Arial, sans-serif",
+          "usage": "Sous-titres, titres de cartes, éléments de navigation, labels de boutons.",
+          "features": [
+            "All caps pour les noms de catégories : CORPORATE, DESIGN, GARDENS, etc.",
+            "Tracking augmenté sur les titres en capitales.",
+            "Poids medium à bold."
+          ]
+        },
+        "bodySans": {
+          "family": "\"Lato\", \"Open Sans\", \"Helvetica Neue\", Arial, sans-serif",
+          "usage": "Paragraphes longs, descriptions, textes secondaires.",
+          "features": [
+            "Hauteur de ligne confortable pour faciliter la lecture.",
+            "Taille de base légèrement au-dessus du standard pour renforcer l’aspect premium."
+          ]
+        }
+      },
+      "scale": {
+        "displayXL": {
+          "fontFamily": "displaySerif",
+          "fontSize": 56,
+          "lineHeight": 1.1,
+          "letterSpacing": 0,
+          "fontWeight": 300,
+          "case": "title",
+          "exampleUsage": "Titre hero principal sur image : 'ÉVÉNEMENT PRIVÉ'."
+        },
+        "displayLG": {
+          "fontFamily": "displaySerif",
+          "fontSize": 40,
+          "lineHeight": 1.15,
+          "letterSpacing": 0.02,
+          "fontWeight": 300,
+          "case": "uppercase",
+          "exampleUsage": "Titres de grandes sections : 'DECO FLAMME', 'GALERIE PHOTO'."
+        },
+        "headingMD": {
+          "fontFamily": "headingSans",
+          "fontSize": 20,
+          "lineHeight": 1.3,
+          "letterSpacing": 0.12,
+          "fontWeight": 700,
+          "case": "uppercase",
+          "exampleUsage": "Titres de cartes services : 'CORPORATE', 'MARIAGE'."
+        },
+        "headingSM": {
+          "fontFamily": "headingSans",
+          "fontSize": 16,
+          "lineHeight": 1.3,
+          "letterSpacing": 0.08,
+          "fontWeight": 700,
+          "case": "uppercase",
+          "exampleUsage": "Labels de section, micro-titres, catégories."
+        },
+        "bodyLG": {
+          "fontFamily": "bodySans",
+          "fontSize": 18,
+          "lineHeight": 1.7,
+          "letterSpacing": 0,
+          "fontWeight": 300,
+          "case": "sentence",
+          "exampleUsage": "Paragraphes d’introduction de section (bloc 'Deco Flamme orchestre une équipe de spécialistes…')."
+        },
+        "bodyMD": {
+          "fontFamily": "bodySans",
+          "fontSize": 16,
+          "lineHeight": 1.6,
+          "letterSpacing": 0,
+          "fontWeight": 300,
+          "case": "sentence",
+          "exampleUsage": "Descriptions de cartes et de services."
+        },
+        "bodySM": {
+          "fontFamily": "bodySans",
+          "fontSize": 14,
+          "lineHeight": 1.5,
+          "letterSpacing": 0,
+          "fontWeight": 300,
+          "case": "sentence",
+          "exampleUsage": "Textes secondaires, légendes."
+        },
+        "buttonLabel": {
+          "fontFamily": "headingSans",
+          "fontSize": 14,
+          "lineHeight": 1.2,
+          "letterSpacing": 0.16,
+          "fontWeight": 700,
+          "case": "uppercase",
+          "exampleUsage": "CTA 'EN SAVOIR PLUS', 'VOIR TOUTE LA GALERIE'."
+        },
+        "navItem": {
+          "fontFamily": "headingSans",
+          "fontSize": 14,
+          "lineHeight": 1.4,
+          "letterSpacing": 0.16,
+          "fontWeight": 500,
+          "case": "title",
+          "exampleUsage": "Éléments du menu principal : 'Accueil', 'À propos'."
+        }
+      }
+    },
+    "spacing": {
+      "description": "Échelle d’espacement généreuse, avec beaucoup de respiration entre les sections et les éléments.",
+      "scale": {
+        "xxs": 4,
+        "xs": 8,
+        "sm": 12,
+        "md": 16,
+        "lg": 24,
+        "xl": 32,
+        "xxl": 48,
+        "sectionY": 96
+      }
+    },
+    "radiuses": {
+      "none": 0,
+      "sm": 2,
+      "md": 4,
+      "lg": 8
+    },
+    "shadows": {
+      "none": "none",
+      "soft": "0 16px 40px rgba(0, 0, 0, 0.15)",
+      "card": "0 8px 24px rgba(0, 0, 0, 0.18)"
+    }
+  },
+  "layout": {
+    "grid": {
+      "desktop": {
+        "columns": 12,
+        "gutter": 24,
+        "maxWidth": 1280,
+        "horizontalMargin": 80,
+        "notes": "Sur desktop large, le contenu principal reste centré avec des marges importantes ; les heros peuvent dépasser en pleine largeur."
+      },
+      "tablet": {
+        "columns": 8,
+        "gutter": 20,
+        "maxWidth": 960,
+        "horizontalMargin": 40
+      },
+      "mobile": {
+        "columns": 4,
+        "gutter": 16,
+        "maxWidth": 480,
+        "horizontalMargin": 20
+      }
+    },
+    "sections": {
+      "default": {
+        "paddingY": "sectionY",
+        "paddingX": "auto (utiliser horizontalMargin de la grille)",
+        "align": "center",
+        "background": "base.background"
+      },
+      "heroFullBleed": {
+        "minHeight": "80vh",
+        "paddingY": "xxl",
+        "align": "center",
+        "background": "image pleine largeur + overlayDark",
+        "contentWidth": "max 720px",
+        "notes": "Texte centré verticalement et horizontalement sur l’image. Titre en displaySerif, sous-titre en bodySans clair."
+      },
+      "photoGalleryStrip": {
+        "layout": "3 colonnes ou 3 cartes alignées horizontalement",
+        "imageRatio": "4:3",
+        "hoverEffect": "Léger zoom + assombrissement + texte en blanc au centre",
+        "notes": "Utilisé pour les sections CORPORATE / ÉVÉNEMENT PRIVÉ / MARIAGE."
+      },
+      "statsRow": {
+        "layout": "3 colonnes égales centrées horizontalement",
+        "notes": "Chaque carte de statistique (Qualité / Sécurité / Environnement) contient une icône en outline, un titre en caps et un paragraphe court."
+      }
+    }
+  },
+  "components": {
+    "appShell": {
+      "header": {
+        "height": 80,
+        "background": "#FFFFFF",
+        "layout": "Logo aligné à gauche, navigation centrée, actions (icônes sociaux + sélecteur de langue) alignées à droite.",
+        "borderBottom": "1px solid rgba(0, 0, 0, 0.04)",
+        "scrollBehavior": "Header fixe ou sticky discret, sans ombre marquée (ou légère ombre soft).",
+        "navItems": {
+          "typography": "navItem",
+          "spacingX": "lg",
+          "activeStyle": "Texte en noir plein avec trait fin ou soulignement léger sous l’élément.",
+          "hoverStyle": "Changement subtil de couleur (muted -> primary) ou soulignement fin."
+        },
+        "languageSwitcher": {
+          "variant": "outlineMinimal",
+          "shape": "rectangle avec radius sm",
+          "icon": "chevronDown fin",
+          "labelCase": "uppercase"
+        }
+      },
+      "footer": {
+        "background": "#111111",
+        "textColor": "text.onDark",
+        "layout": "Grille simple avec logo, navigation secondaire et mentions légales.",
+        "spacingY": "xl"
+      }
+    },
+    "hero": {
+      "variantMain": {
+        "background": "Image plein écran d’un événement, overlayDark pour lisibilité.",
+        "alignment": "Centre, texte sur 1 colonne centrale.",
+        "elements": [
+          "sur-titre optionnel en headingSM (ex. type de service)",
+          "titre principal en displayXL (serif, blanc ou très clair)",
+          "sous-titre en bodyMD (blanc, max 2–3 lignes)",
+          "rangée de CTA (1 ou 2 boutons)"
+        ],
+        "ctaArrangement": "Bouton principal en outline clair, bouton secondaire plein noir ou rouge."
+      },
+      "variantSecondary": {
+        "background": "blanc ou photo recadrée avec large bordure blanche",
+        "titleStyle": "displayLG",
+        "alignment": "centré",
+        "usage": "Sections comme 'DECO FLAMME' avec texte explicatif."
+      }
+    },
+    "button": {
+      "common": {
+        "height": 48,
+        "paddingX": 32,
+        "borderRadius": "sm",
+        "borderWidth": 1,
+        "font": "buttonLabel",
+        "iconPlacement": "optionnel à gauche ou à droite, aligné sur la baseline.",
+        "transition": "200ms ease opacity, background, transform"
+      },
+      "variants": {
+        "primaryOutlineLight": {
+          "description": "Utilisé sur fond sombre ou photo (ex. hero principal).",
+          "borderColor": "#FFFFFF",
+          "backgroundColor": "transparent",
+          "textColor": "#FFFFFF",
+          "hover": {
+            "backgroundColor": "rgba(255, 255, 255, 0.12)",
+            "transform": "translateY(-1px)"
+          },
+          "pressed": {
+            "backgroundColor": "rgba(255, 255, 255, 0.2)",
+            "transform": "translateY(0)"
+          }
+        },
+        "primaryOutlineDark": {
+          "description": "Bouton 'EN SAVOIR PLUS' sur fond blanc avec bordure noire.",
+          "borderColor": "#111111",
+          "backgroundColor": "transparent",
+          "textColor": "#111111",
+          "hover": {
+            "backgroundColor": "rgba(0, 0, 0, 0.02)"
+          },
+          "pressed": {
+            "backgroundColor": "rgba(0, 0, 0, 0.06)"
+          }
+        },
+        "primaryFilledDark": {
+          "description": "Bouton plein noir avec texte blanc (version inversée).",
+          "borderColor": "#111111",
+          "backgroundColor": "#111111",
+          "textColor": "#FFFFFF",
+          "hover": {
+            "backgroundColor": "#222222"
+          },
+          "pressed": {
+            "backgroundColor": "#000000"
+          }
+        },
+        "primaryFilledBrand": {
+          "description": "Optionnel : bouton accent rouge pour actions très importantes.",
+          "borderColor": "brand.primaryDark",
+          "backgroundColor": "brand.primary",
+          "textColor": "#FFFFFF",
+          "hover": {
+            "backgroundColor": "brand.primaryDark"
+          }
+        },
+        "ghost": {
+          "description": "Boutons secondaires sans bordure, texte seul.",
+          "borderColor": "transparent",
+          "backgroundColor": "transparent",
+          "textColor": "text.primary",
+          "hover": {
+            "backgroundColor": "states.hover"
+          }
+        }
+      }
+    },
+    "card": {
+      "serviceCard": {
+        "description": "Cartes CORPORATE / ÉVÉNEMENT PRIVÉ / MARIAGE avec grande photo et texte en dessous.",
+        "imageRatio": "4:3",
+        "imageTreatment": "Photo haute saturation avec sujets très colorés, coins légèrement arrondis.",
+        "layout": "Image en haut, titre en headingMD, description en bodyMD.",
+        "dividerStyle": "Ligne verticale fine sur le bord gauche ou droit de la carte pour séparer les services.",
+        "hoverEffect": "Léger zoom de l’image ou translation vers le haut, ombre card très subtile."
+      },
+      "statCard": {
+        "description": "Blocs Qualité / Sécurité / Environnement.",
+        "layout": "Icône outline centrée en haut, grand chiffre ou mot-clé, puis description courte.",
+        "iconStyle": "Lignes fines, monochrome, taille moyenne.",
+        "typography": {
+          "label": "headingSM",
+          "value": "displayLG ou headingMD",
+          "description": "bodySM"
+        }
+      },
+      "galleryTile": {
+        "description": "Tuiles de la galerie photo en grille 3x2.",
+        "imageOverlay": "Dégradé sombre en bas pour faire ressortir le texte.",
+        "textAlignment": "centré ou aligné bas-centre.",
+        "hoverEffect": "Assombrissement + légère montée de la luminosité locale sur le sujet."
+      }
+    },
+    "iconography": {
+      "style": "Outline fin, monochrome, stroke ~1.5px.",
+      "examples": [
+        "Étoiles de notation en outline.",
+        "Pictogrammes de sécurité / bouclier / laurier.",
+        "Globe stylisé pour environnement."
+      ],
+      "usageRules": [
+        "Toujours garder l’icône simple et lisible, sans détails superflus.",
+        "Utiliser la même épaisseur de trait pour toutes les icônes.",
+        "Privilégier les icônes en noir sur fond blanc, ou en blanc sur fond sombre."
+      ]
+    },
+    "textBlocks": {
+      "introParagraph": {
+        "maxWidth": 720,
+        "alignment": "center",
+        "typography": "bodyLG",
+        "spacingBelow": "xl",
+        "usage": "Paragraphes d’introduction de sections clés (comme la description de Deco Flamme)."
+      },
+      "sectionTitleGroup": {
+        "elements": [
+          "sur-titre optionnel en headingSM",
+          "titre en displayLG",
+          "sous-titre en bodyMD"
+        ],
+        "alignment": "center",
+        "spacing": {
+          "betweenTitleAndSubtitle": "sm",
+          "afterGroup": "xl"
+        }
+      }
+    },
+    "galleryCTASection": {
+      "description": "Bloc 'GALERIE PHOTO' avec bouton 'VOIR TOUTE LA GALERIE'.",
+      "layout": "Section blanche, titre centré en serif, CTA centré en dessous.",
+      "components": [
+        "Titre en displayLG",
+        "Bouton variant primaryOutlineDark"
+      ],
+      "spacing": {
+        "titleToButton": "lg",
+        "sectionY": "sectionY"
+      }
+    }
+  },
+  "usageGuidelines": {
+    "do": [
+      "Utiliser systématiquement la grille et les espacements définis pour garder l’alignement et la structure globale.",
+      "Garder le nombre de couleurs de fond limité (blanc, noir, très peu de gris) et laisser les photos porter la couleur.",
+      "Utiliser les titres en serif uniquement pour les moments importants (heros, titres de grandes sections).",
+      "Mettre les labels de services et de catégories en majuscules avec tracking augmenté.",
+      "Utiliser au maximum 2 variantes de boutons par écran (ex. outline + filled)."
+    ],
+    "dont": [
+      "Ne pas mélanger plusieurs familles de serif différentes sur un même écran.",
+      "Ne pas utiliser de couleurs saturées en aplat derrière du texte (réserver la couleur aux images et à quelques boutons).",
+      "Ne pas serrer les éléments verticalement : toujours laisser de l’espace respirer entre les blocs.",
+      "Ne pas ajouter d’ombres fortes, de bordures épaisses ou d’effets néon qui casseraient le look premium."
+    ],
+    "implementationNotesForAI": [
+      "Lors de la génération d’interfaces, choisir les styles de texte en fonction des tokens typographiques (displayXL, displayLG, headingMD, bodyMD, etc.) plutôt que de définir des tailles arbitraires.",
+      "Toujours commencer un écran par définir la structure de la grille (nombre de colonnes) et la section (heroFullBleed, photoGalleryStrip, statsRow, etc.).",
+      "Pour tout nouveau composant, aligner la hauteur de ligne, la taille de police et les rayons de bordure sur ceux des boutons et cartes existants.",
+      "Les CTA principaux doivent utiliser les variantes de boutons définies et être positionnés au centre ou dans l’alignement de la grille, jamais flottants sans repère."
+    ]
+  }
+}
+
+
+
+
+
