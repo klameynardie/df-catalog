@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Linking, Platform, useWindowDimensions } from 'react-native';
-import { Image } from 'expo-image';
-import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, fontFamilies } from '@/constants/theme';
-import { supabase, type Category } from '@/lib/supabase';
+import { colors, fontFamilies, spacing } from '@/constants/theme';
 import { navigateToCategory } from '@/lib/navigation';
+import { supabase, type Category } from '@/lib/supabase';
+import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
+import React, { useEffect, useState } from 'react';
+import { Linking, Platform, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 
 const isWeb = Platform.OS === 'web';
 
@@ -32,12 +32,15 @@ export default function Footer() {
 
   return (
     <View style={styles.container}>
+      {/* Logo */}
       <TouchableOpacity onPress={() => Linking.openURL('https://deco-flamme.com')} style={styles.logoContainer}>
         <Image source={require('@/assets/images/logo-df-white.png')} style={styles.logo} contentFit="contain" />
       </TouchableOpacity>
 
+      {/* Tagline */}
       <Text style={styles.tagline}>Location, décoration et création d'espaces éphémères</Text>
 
+      {/* Categories Section */}
       <View style={styles.categoriesSection}>
         <Text style={styles.categoriesTitle}>NOS CATÉGORIES</Text>
         <View style={styles.categoriesGrid}>
@@ -53,10 +56,12 @@ export default function Footer() {
         </View>
       </View>
 
+      {/* Website Link */}
       <TouchableOpacity onPress={() => Linking.openURL('https://deco-flamme.com')} style={styles.websiteLink}>
         <Text style={styles.websiteLinkText}>Visitez deco-flamme.com</Text>
       </TouchableOpacity>
 
+      {/* Social Icons */}
       <View style={styles.socialContainer}>
         {socialLinks.map((link) => (
           <TouchableOpacity key={link.name} style={styles.socialButton} onPress={() => Linking.openURL(link.url)}>
@@ -65,7 +70,10 @@ export default function Footer() {
         ))}
       </View>
 
+      {/* Divider - petit trait gris */}
       <View style={styles.divider} />
+
+      {/* Copyright */}
       <Text style={styles.copyright}>2025 Deco Flamme. Tous droits réservés.</Text>
     </View>
   );
@@ -80,7 +88,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logoContainer: { marginBottom: spacing.lg },
-  logo: { width: isWeb ? 200 : 140, height: isWeb ? 70 : 50 },
+  logo: { 
+    width: isWeb ? 200 : 140, 
+    height: isWeb ? 70 : 50,
+  },
   tagline: { 
     fontFamily: fontFamilies.body, 
     fontSize: isWeb ? 15 : 13, 
@@ -88,6 +99,8 @@ const styles = StyleSheet.create({
     textAlign: 'center', 
     marginBottom: isWeb ? spacing.xxl : spacing.xl,
   },
+
+  // Categories
   categoriesSection: {
     width: '100%',
     maxWidth: 900,
@@ -103,13 +116,58 @@ const styles = StyleSheet.create({
     marginBottom: isWeb ? spacing.xl : spacing.lg,
     textAlign: 'center',
   },
-  categoriesGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center' },
-  categoryLink: { paddingVertical: spacing.sm, alignItems: 'center' },
-  categoryText: { fontFamily: fontFamilies.body, fontSize: isWeb ? 14 : 13, color: colors.textOnDark, textAlign: 'center' },
-  websiteLink: { marginBottom: isWeb ? spacing.xl : spacing.lg },
-  websiteLinkText: { fontFamily: fontFamilies.body, fontSize: isWeb ? 14 : 13, color: colors.textOnDark, textDecorationLine: 'underline' },
-  socialContainer: { flexDirection: 'row', gap: isWeb ? spacing.lg : spacing.md, marginBottom: isWeb ? spacing.xxl : spacing.xl },
-  socialButton: { width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
-  divider: { width: '100%', height: 1, backgroundColor: colors.brandPrimary, marginBottom: spacing.lg },
-  copyright: { fontFamily: fontFamilies.body, fontSize: 11, color: colors.textOnDark, opacity: 0.5, textAlign: 'center' },
+  categoriesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
+  categoryLink: {
+    paddingVertical: spacing.sm,
+    alignItems: 'center',
+  },
+  categoryText: {
+    fontFamily: fontFamilies.body,
+    fontSize: isWeb ? 14 : 13,
+    color: colors.textOnDark,
+    textAlign: 'center',
+  },
+
+  // Website link
+  websiteLink: {
+    marginBottom: isWeb ? spacing.xl : spacing.lg,
+  },
+  websiteLinkText: {
+    fontFamily: fontFamilies.body,
+    fontSize: isWeb ? 14 : 13,
+    color: colors.textOnDark,
+    textDecorationLine: 'underline',
+  },
+
+  // Social
+  socialContainer: { 
+    flexDirection: 'row', 
+    gap: isWeb ? spacing.lg : spacing.md, 
+    marginBottom: isWeb ? spacing.xxl : spacing.xl,
+  },
+  socialButton: { 
+    width: 44, 
+    height: 44, 
+    justifyContent: 'center', 
+    alignItems: 'center',
+  },
+
+  // Divider & Copyright
+  divider: { 
+    width: 60, 
+    height: 1, 
+    backgroundColor: 'rgba(255, 255, 255, 0.3)', 
+    marginBottom: spacing.lg,
+  },
+  copyright: { 
+    fontFamily: fontFamilies.body, 
+    fontSize: 11, 
+    color: colors.textOnDark, 
+    opacity: 0.5, 
+    textAlign: 'center',
+  },
 });

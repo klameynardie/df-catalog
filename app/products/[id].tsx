@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, TextInput, Modal, Platform, useWindowDimensions } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -43,6 +43,10 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showAddedModal, setShowAddedModal] = useState(false);
+  
+  // Ref pour le carousel "Vous aimerez aussi"
+  const relatedScrollRef = useRef<ScrollView>(null);
+  const relatedScrollPosition = useRef(0);
 
   // Responsive breakpoints
   const isMobileView = screenWidth < 768;
@@ -124,6 +128,25 @@ export default function ProductDetailPage() {
   const handleGoToCart = () => {
     setShowAddedModal(false);
     navigateToCart();
+  };
+
+  // Navigation carousel "Vous aimerez aussi"
+  const relatedScrollAmount = relatedCardWidth + (isMobileView ? spacing.md : spacing.lg);
+
+  const handleRelatedScrollLeft = () => {
+    const newPosition = Math.max(0, relatedScrollPosition.current - relatedScrollAmount * 2);
+    relatedScrollRef.current?.scrollTo({ x: newPosition, animated: true });
+    relatedScrollPosition.current = newPosition;
+  };
+
+  const handleRelatedScrollRight = () => {
+    const newPosition = relatedScrollPosition.current + relatedScrollAmount * 2;
+    relatedScrollRef.current?.scrollTo({ x: newPosition, animated: true });
+    relatedScrollPosition.current = newPosition;
+  };
+
+  const handleRelatedScroll = (event: any) => {
+    relatedScrollPosition.current = event.nativeEvent.contentOffset.x;
   };
 
   if (loading) return <SafeAreaView style={styles.loadingContainer}><ActivityIndicator size="large" color={colors.textPrimary} /></SafeAreaView>;
@@ -313,8 +336,27 @@ export default function ProductDetailPage() {
         {/* Produits similaires */}
         {relatedProducts.length > 0 && (
           <View style={styles.relatedSection}>
-            <Text style={[styles.relatedTitle, { fontSize: relatedTitleSize, paddingHorizontal: contentPadding }]}>Vous aimerez aussi</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.relatedScroll, { paddingHorizontal: contentPadding, gap: isMobileView ? spacing.md : spacing.lg }]}>
+            <View style={[styles.relatedHeader, { paddingHorizontal: contentPadding }]}>
+              <Text style={[styles.relatedTitle, { fontSize: relatedTitleSize }]}>Vous aimerez aussi</Text>
+              {isWeb && (
+                <View style={styles.relatedNavButtons}>
+                  <TouchableOpacity style={styles.relatedNavButton} onPress={handleRelatedScrollLeft} activeOpacity={0.7}>
+                    <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.relatedNavButton} onPress={handleRelatedScrollRight} activeOpacity={0.7}>
+                    <Ionicons name="chevron-forward" size={24} color={colors.textPrimary} />
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+            <ScrollView 
+              ref={relatedScrollRef}
+              horizontal 
+              showsHorizontalScrollIndicator={false} 
+              contentContainerStyle={[styles.relatedScroll, { paddingHorizontal: contentPadding, gap: isMobileView ? spacing.md : spacing.lg }]}
+              onScroll={handleRelatedScroll}
+              scrollEventThrottle={16}
+            >
               {relatedProducts.map((item) => (
                 <TouchableOpacity key={item.id} style={[styles.relatedCard, { width: relatedCardWidth }]} onPress={() => navigateToProduct(item.id)}>
                   <Image source={{ uri: getValidImageUrl(item.product_image || item.image_url) }} style={styles.relatedImage} contentFit="cover" />
@@ -573,6 +615,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center', 
     alignItems: 'center', 
     gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
   },
   addToCartText: { 
     fontFamily: fontFamilies.body,
@@ -586,10 +629,28 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xxl, 
     backgroundColor: colors.surfaceMuted,
   },
+  relatedHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
   relatedTitle: { 
     fontFamily: fontFamilies.display, 
     color: colors.textPrimary, 
-    marginBottom: spacing.lg,
+  },
+  relatedNavButtons: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  relatedNavButton: {
+    width: 48,
+    height: 48,
+    borderWidth: 1,
+    borderColor: colors.textPrimary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.background,
   },
   relatedScroll: {},
   relatedCard: { 
