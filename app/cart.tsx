@@ -14,6 +14,18 @@ const isWeb = Platform.OS === 'web';
 const CONTENT_PADDING = isWeb ? 48 : spacing.lg;
 const DEFAULT_IMAGE = 'https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=800';
 
+// URL de l'API back-office pour l'envoi d'emails
+const EMAIL_API_URL = process.env.EXPO_PUBLIC_EMAIL_API_URL || 'http://localhost:3000/api/send-quote';
+
+// Fonction d'alerte compatible web et mobile
+const showAlert = (title: string, message: string) => {
+  if (isWeb) {
+    window.alert(`${title}\n\n${message}`);
+  } else {
+    Alert.alert(title, message);
+  }
+};
+
 export default function CartPage() {
   const { width: screenWidth } = useWindowDimensions();
   const { items, updateQuantity, removeItem, clearCart, totalItems } = useCart();
@@ -21,26 +33,81 @@ export default function CartPage() {
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', message: '' });
 
   const handleSubmitQuote = async () => {
+    console.log('=== Début soumission devis ===');
+    console.log('Données du formulaire:', formData);
+    console.log('Items du panier:', items);
+
     if (!formData.name || !formData.email) {
-      Alert.alert('Erreur', 'Veuillez remplir les champs obligatoires (Nom et Email)');
+      showAlert('Erreur', 'Veuillez remplir les champs obligatoires (Nom et Email)');
       return;
     }
+
+    if (items.length === 0) {
+      showAlert('Erreur', 'Votre panier est vide');
+      return;
+    }
+
     setSubmitting(true);
     try {
+      const quoteItems = items.map((item) => ({ 
+        product_id: item.id, 
+        product_name: item.name, 
+        quantity: item.quantity 
+      }));
+
+      console.log('Items formatés:', quoteItems);
+
+      // 1. Enregistrer dans Supabase
+      console.log('Envoi vers Supabase...');
       await submitQuoteRequest({
         customer_name: formData.name,
         customer_email: formData.email,
         customer_phone: formData.phone,
         message: formData.message,
-        items: items.map((item) => ({ product_id: item.id, product_name: item.name, quantity: item.quantity })),
+        items: quoteItems,
         status: 'pending',
       });
-      Alert.alert('Succès', 'Votre demande de devis a été envoyée !');
+      console.log('✅ Demande enregistrée dans Supabase');
+
+      // 2. Envoyer les emails via l'API back-office
+      console.log('📧 Envoi email vers:', EMAIL_API_URL);
+      try {
+        const emailPayload = {
+          customer_name: formData.name,
+          customer_email: formData.email,
+          customer_phone: formData.phone,
+          message: formData.message,
+          items: quoteItems,
+        };
+        console.log('📧 Payload email:', JSON.stringify(emailPayload));
+        
+        const emailResponse = await fetch(EMAIL_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(emailPayload),
+        });
+        
+        console.log('📧 Réponse status:', emailResponse.status);
+        
+        if (!emailResponse.ok) {
+          const errorText = await emailResponse.text();
+          console.error('📧 ❌ Erreur API email:', emailResponse.status, errorText);
+        } else {
+          const emailResult = await emailResponse.json();
+          console.log('📧 ✅ Résultat email:', emailResult);
+        }
+      } catch (emailError: any) {
+        // L'email a échoué mais la demande est enregistrée
+        console.error('📧 ❌ Exception lors de l\'envoi email:', emailError?.message || emailError);
+      }
+
+      showAlert('Succès', 'Votre demande de devis a été envoyée !');
       clearCart();
       setFormData({ name: '', email: '', phone: '', message: '' });
       navigateToHome();
-    } catch (error) {
-      Alert.alert('Erreur', 'Une erreur est survenue');
+    } catch (error: any) {
+      console.error('❌ Erreur lors de la soumission:', error);
+      showAlert('Erreur', error?.message || 'Une erreur est survenue');
     } finally {
       setSubmitting(false);
     }

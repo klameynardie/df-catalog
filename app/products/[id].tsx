@@ -81,7 +81,13 @@ export default function ProductDetailPage() {
     const data = await fetchProductById(id!);
     if (data) {
       setProduct(data);
-      const related = await fetchRelatedProducts(data.category_id, data.id, 6);
+      // Utiliser les produits sélectionnés manuellement, sinon les derniers de la catégorie
+      const related = await fetchRelatedProducts(
+        data.category_id, 
+        data.id, 
+        6,
+        data.related_products
+      );
       setRelatedProducts(related);
     }
     setLoading(false);

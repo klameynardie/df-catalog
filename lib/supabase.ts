@@ -71,6 +71,7 @@ export interface Product {
   dimensions?: string;
   weight?: string;
   additional_info?: string;
+  related_products?: string[];
   available: boolean;
   created_at: string;
   categories?: Category;
@@ -118,8 +119,42 @@ export async function fetchNewProducts(limit: number = 6): Promise<Product[]> {
   return data || [];
 }
 
-export async function fetchRelatedProducts(categoryId: string, excludeId: string, limit: number = 6): Promise<Product[]> {
-  const { data, error } = await supabase.from('products').select('*').eq('category_id', categoryId).neq('id', excludeId).eq('available', true).limit(limit);
+export async function fetchRelatedProducts(
+  categoryId: string, 
+  excludeId: string, 
+  limit: number = 6,
+  relatedProductIds?: string[]
+): Promise<Product[]> {
+  // Si des produits sont sélectionnés manuellement, les récupérer
+  if (relatedProductIds && relatedProductIds.length > 0) {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*, categories(name, slug)')
+      .in('id', relatedProductIds)
+      .eq('available', true);
+    
+    if (error) { 
+      console.error('Error fetching selected related products:', error); 
+      // Fallback sur les produits de la catégorie
+    } else if (data && data.length > 0) {
+      // Garder l'ordre des IDs sélectionnés
+      const orderedProducts = relatedProductIds
+        .map(id => data.find(p => p.id === id))
+        .filter(Boolean) as Product[];
+      return orderedProducts;
+    }
+  }
+  
+  // Sinon, récupérer les derniers produits de la même catégorie
+  const { data, error } = await supabase
+    .from('products')
+    .select('*, categories(name, slug)')
+    .eq('category_id', categoryId)
+    .neq('id', excludeId)
+    .eq('available', true)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  
   if (error) { console.error('Error fetching related products:', error); return []; }
   return data || [];
 }
@@ -137,8 +172,44 @@ export async function fetchFilterOptions() {
   };
 }
 
-export async function submitQuoteRequest(data: any) {
-  const { error } = await supabase.from('quote_requests').insert(data);
-  if (error) throw error;
+export async function submitQuoteRequest(data: {
+  customer_name: string;
+  customer_email: string;
+  customer_phone?: string;
+  message?: string;
+  items: { product_id: string; product_name: string; quantity: number }[];
+  status?: string;
+}) {
+  // 1. Insérer la demande de devis
+  const { data: quoteRequest, error: quoteError } = await supabase
+    .from('quote_requests')
+    .insert({
+      customer_name: data.customer_name,
+      customer_email: data.customer_email,
+      customer_phone: data.customer_phone || null,
+      customer_message: data.message || null,
+      status: data.status || 'pending',
+    })
+    .select('id')
+    .single();
+
+  if (quoteError) throw quoteError;
+
+  // 2. Insérer les items de la demande
+  if (data.items && data.items.length > 0) {
+    const itemsToInsert = data.items.map((item) => ({
+      quote_request_id: quoteRequest.id,
+      product_id: item.product_id,
+      quantity: item.quantity,
+    }));
+
+    const { error: itemsError } = await supabase
+      .from('quote_request_items')
+      .insert(itemsToInsert);
+
+    if (itemsError) throw itemsError;
+  }
+
+  return quoteRequest;
 }
 
