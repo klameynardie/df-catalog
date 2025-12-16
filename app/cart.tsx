@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, KeyboardAvoidingView, Platform, useWindowDimensions } from 'react-native';
-import { Image } from 'expo-image';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { colors, spacing, fontFamilies } from '@/constants/theme';
+import Header from '@/components/Header';
+import { colors, fontFamilies, spacing } from '@/constants/theme';
 import { useCart, type CartItem } from '@/contexts/CartContext';
-import { submitQuoteRequest } from '@/lib/supabase';
 import { navigateToHome } from '@/lib/navigation';
+import { submitQuoteRequest } from '@/lib/supabase';
+import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
+import React, { useState } from 'react';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const isWeb = Platform.OS === 'web';
 const CONTENT_PADDING = isWeb ? 48 : spacing.lg;
