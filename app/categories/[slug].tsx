@@ -12,20 +12,13 @@ import { navigateToProduct, navigateToSubcategory, navigateToHome } from '@/lib/
 
 const isWeb = Platform.OS === 'web';
 
-// Images Unsplash de haute qualité pour événementiel/décoration
-const FALLBACK_IMAGES = [
-  'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&q=80',
-  'https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=800&q=80',
-  'https://images.unsplash.com/photo-1543007630-9710e4a00a20?w=800&q=80',
-  'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=800&q=80',
-  'https://images.unsplash.com/photo-1478146896981-b80fe463b330?w=800&q=80',
-  'https://images.unsplash.com/photo-1555244162-803834f70033?w=800&q=80',
-];
+// Image placeholder par défaut
+const DEFAULT_PLACEHOLDER = 'https://via.placeholder.com/400x533/f5f5f5/999999?text=Image+non+disponible';
 
-const getProductImage = (product: Product, index: number = 0): string => {
+const getProductImage = (product: Product): string => {
   const url = product.product_image || product.image_url;
   if (url && url.trim() !== '' && url.startsWith('http')) return url;
-  return FALLBACK_IMAGES[index % FALLBACK_IMAGES.length];
+  return DEFAULT_PLACEHOLDER;
 };
 
 export default function CategoryPage() {
@@ -158,7 +151,7 @@ export default function CategoryPage() {
   const renderProductCard = (item: Product, index: number) => (
     <TouchableOpacity key={item.id} style={[styles.productCard, { width: productCardWidth }]} onPress={() => navigateToProduct(item.id)} activeOpacity={0.9}>
       <View style={[styles.productImageContainer, { aspectRatio: isMobileView ? 3/4 : 4/5 }]}>
-        <Image source={{ uri: getProductImage(item, index) }} style={styles.productImage} contentFit="cover" transition={200} />
+        <Image source={{ uri: getProductImage(item) }} style={styles.productImage} contentFit="cover" transition={200} />
       </View>
       <View style={styles.productInfo}>
         <Text style={[styles.productName, { fontSize: isMobileView ? 16 : 20 }]} numberOfLines={2}>{item.name}</Text>

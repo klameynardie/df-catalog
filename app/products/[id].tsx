@@ -6,31 +6,20 @@ import { useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { colors, spacing, fontFamilies } from '@/constants/theme';
+import { colors, spacing, fontFamilies, shadows } from '@/constants/theme';
 import { useCart } from '@/contexts/CartContext';
 import { fetchProductById, fetchRelatedProducts, type Product } from '@/lib/supabase';
 import { navigateToProduct, navigateToHome, navigateToCategory, navigateToCart, goBack } from '@/lib/navigation';
 
 const isWeb = Platform.OS === 'web';
 
-// Images Unsplash de haute qualité pour événementiel/décoration
-const FALLBACK_IMAGES = [
-  'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&q=80', // Bar élégant
-  'https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=800&q=80', // Bar moderne
-  'https://images.unsplash.com/photo-1543007630-9710e4a00a20?w=800&q=80', // Décoration événement
-  'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=800&q=80', // Réception mariage
-  'https://images.unsplash.com/photo-1478146896981-b80fe463b330?w=800&q=80', // Salon élégant
-  'https://images.unsplash.com/photo-1555244162-803834f70033?w=800&q=80', // Table décorée
-];
-
-const DEFAULT_IMAGE = FALLBACK_IMAGES[0];
+// Image placeholder par défaut
+const DEFAULT_PLACEHOLDER = 'https://via.placeholder.com/400x533/f5f5f5/999999?text=Image+non+disponible';
 
 const getValidImageUrl = (url: string | undefined | null): string => {
-  if (!url || url.trim() === '') return DEFAULT_IMAGE;
-  // URL complète valide
+  if (!url || url.trim() === '') return DEFAULT_PLACEHOLDER;
   if (url.startsWith('http')) return url;
-  // Les chemins relatifs Supabase ne fonctionnent pas, utiliser image par défaut
-  return DEFAULT_IMAGE;
+  return DEFAULT_PLACEHOLDER;
 };
 
 export default function ProductDetailPage() {
@@ -68,7 +57,21 @@ export default function ProductDetailPage() {
   const descriptionSize = isMobileView ? 16 : 18;
   const sectionTitleSize = isMobileView ? 18 : 22;
   const relatedTitleSize = isMobileView ? 24 : 32;
-  const relatedCardWidth = isMobileView ? 140 : (isTabletView ? 160 : 200);
+  
+  // Calcul de la largeur des cards "Vous aimerez aussi" (identique à Nouveautés)
+  const relatedCardSpacing = isMobileView ? spacing.md : 24;
+  const getRelatedCardWidth = () => {
+    if (!isWeb) return screenWidth * 0.42;
+    const availableWidth = screenWidth - contentPadding * 2;
+    if (screenWidth < 768) {
+      return (availableWidth - relatedCardSpacing) / 2;
+    } else if (screenWidth < 1200) {
+      return (availableWidth - relatedCardSpacing * 2) / 3;
+    } else {
+      return Math.min(280, (availableWidth - relatedCardSpacing * 3) / 4);
+    }
+  };
+  const relatedCardWidth = getRelatedCardWidth();
 
   useEffect(() => {
     if (id) loadProduct();
@@ -96,20 +99,10 @@ export default function ProductDetailPage() {
     if (product.ambient_images && product.ambient_images.length > 0) {
       product.ambient_images.forEach(img => {
         const validUrl = getValidImageUrl(img);
-        if (validUrl.startsWith('http') && !validUrl.includes('pexels') && !images.includes(validUrl)) {
+        if (validUrl !== DEFAULT_PLACEHOLDER && !images.includes(validUrl)) {
           images.push(validUrl);
         }
       });
-    }
-    
-    // Ajouter des images de démonstration variées si on n'a qu'une image
-    if (images.length === 1) {
-      // Sélectionner 2 images différentes basées sur l'ID du produit pour varier
-      const productHash = product.id.charCodeAt(0) % FALLBACK_IMAGES.length;
-      const img1 = FALLBACK_IMAGES[(productHash + 1) % FALLBACK_IMAGES.length];
-      const img2 = FALLBACK_IMAGES[(productHash + 2) % FALLBACK_IMAGES.length];
-      if (!images.includes(img1)) images.push(img1);
-      if (!images.includes(img2)) images.push(img2);
     }
     
     return images;
@@ -131,7 +124,7 @@ export default function ProductDetailPage() {
   };
 
   // Navigation carousel "Vous aimerez aussi"
-  const relatedScrollAmount = relatedCardWidth + (isMobileView ? spacing.md : spacing.lg);
+  const relatedScrollAmount = relatedCardWidth + relatedCardSpacing;
 
   const handleRelatedScrollLeft = () => {
     const newPosition = Math.max(0, relatedScrollPosition.current - relatedScrollAmount * 2);
@@ -353,14 +346,14 @@ export default function ProductDetailPage() {
               ref={relatedScrollRef}
               horizontal 
               showsHorizontalScrollIndicator={false} 
-              contentContainerStyle={[styles.relatedScroll, { paddingHorizontal: contentPadding, gap: isMobileView ? spacing.md : spacing.lg }]}
+              contentContainerStyle={[styles.relatedScroll, { paddingHorizontal: contentPadding, gap: relatedCardSpacing }]}
               onScroll={handleRelatedScroll}
               scrollEventThrottle={16}
             >
               {relatedProducts.map((item) => (
                 <TouchableOpacity key={item.id} style={[styles.relatedCard, { width: relatedCardWidth }]} onPress={() => navigateToProduct(item.id)}>
                   <Image source={{ uri: getValidImageUrl(item.product_image || item.image_url) }} style={styles.relatedImage} contentFit="cover" />
-                  <Text style={[styles.relatedName, { fontSize: isMobileView ? 14 : 16 }]} numberOfLines={2}>{item.name}</Text>
+                  <Text style={[styles.relatedName, { fontSize: isWeb ? 22 : 18 }]} numberOfLines={2}>{item.name}</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -655,15 +648,17 @@ const styles = StyleSheet.create({
   relatedScroll: {},
   relatedCard: { 
     backgroundColor: colors.background,
+    ...shadows.card,
   },
   relatedImage: { 
     width: '100%', 
     aspectRatio: 3 / 4,
+    overflow: 'hidden',
   },
   relatedName: { 
     fontFamily: fontFamilies.display,
     color: colors.textPrimary, 
-    padding: spacing.sm,
+    padding: isWeb ? 20 : spacing.md,
   },
 
   // Modal

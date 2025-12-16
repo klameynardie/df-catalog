@@ -41,7 +41,19 @@ export default function CategoryGrid({ categories, onCategoryPress }: CategoryGr
   const numColumns = isWeb ? (screenWidth > 1200 ? 4 : screenWidth > 800 ? 3 : 2) : 2;
   const cardWidth = (screenWidth - HORIZONTAL_PADDING * 2 - CARD_MARGIN * (numColumns - 1)) / numColumns;
 
-  const getCategoryImage = (category: Category) => categoryImages[category.slug] || (category.image_url ? { uri: category.image_url } : defaultImage);
+  // Priorité : 1. image_url de la BDD (back-office), 2. image locale, 3. image par défaut
+  const getCategoryImage = (category: Category) => {
+    // Si une image est définie dans la base de données (via le back-office), l'utiliser en priorité
+    if (category.image_url) {
+      return { uri: category.image_url };
+    }
+    // Sinon, utiliser l'image locale si elle existe
+    if (categoryImages[category.slug]) {
+      return categoryImages[category.slug];
+    }
+    // Fallback: image par défaut
+    return defaultImage;
+  };
 
   if (categories.length === 0) return null;
 
