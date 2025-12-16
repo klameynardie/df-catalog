@@ -1,14 +1,12 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform, useWindowDimensions } from 'react-native';
 import { Image } from 'expo-image';
 import { colors, spacing, shadows, fontFamilies } from '@/constants/theme';
 import type { Category } from '@/lib/supabase';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const NUM_COLUMNS = 2;
-const HORIZONTAL_PADDING = Platform.OS === 'web' ? 48 : spacing.lg;
-const CARD_MARGIN = Platform.OS === 'web' ? 16 : spacing.sm;
-const CARD_WIDTH = (SCREEN_WIDTH - HORIZONTAL_PADDING * 2 - CARD_MARGIN * (NUM_COLUMNS - 1)) / NUM_COLUMNS;
+const isWeb = Platform.OS === 'web';
+const HORIZONTAL_PADDING = isWeb ? 48 : spacing.lg;
+const CARD_MARGIN = isWeb ? 16 : spacing.sm;
 
 const categoryImages: Record<string, any> = {
   'bars-buffets-back-bars': require('@/assets/images/YACHT-SILVER-WAVE-ILTM-CANNES-2017-57.jpg'),
@@ -37,20 +35,35 @@ interface CategoryGridProps {
 }
 
 export default function CategoryGrid({ categories, onCategoryPress }: CategoryGridProps) {
+  const { width: screenWidth } = useWindowDimensions();
+  
+  // Calcul dynamique du nombre de colonnes et de la largeur des cards
+  const numColumns = isWeb ? (screenWidth > 1200 ? 4 : screenWidth > 800 ? 3 : 2) : 2;
+  const cardWidth = (screenWidth - HORIZONTAL_PADDING * 2 - CARD_MARGIN * (numColumns - 1)) / numColumns;
+
   const getCategoryImage = (category: Category) => categoryImages[category.slug] || (category.image_url ? { uri: category.image_url } : defaultImage);
 
   if (categories.length === 0) return null;
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}><Text style={styles.sectionTitle}>Nos catégories</Text></View>
+      <View style={styles.header}>
+        <Text style={styles.sectionTitle}>Nos catégories</Text>
+      </View>
       <View style={styles.grid}>
         {categories.map((category) => (
-          <TouchableOpacity key={category.id} style={styles.card} onPress={() => onCategoryPress?.(category)} activeOpacity={0.9}>
+          <TouchableOpacity 
+            key={category.id} 
+            style={[styles.card, { width: cardWidth, marginHorizontal: CARD_MARGIN / 2 }]} 
+            onPress={() => onCategoryPress?.(category)} 
+            activeOpacity={0.9}
+          >
             <View style={styles.cardImageContainer}>
               <Image source={getCategoryImage(category)} style={styles.cardImage} contentFit="cover" transition={200} />
               <View style={styles.cardGradient} />
-              <View style={styles.cardContent}><Text style={styles.cardTitle}>{category.name}</Text></View>
+              <View style={styles.cardContent}>
+                <Text style={styles.cardTitle}>{category.name}</Text>
+              </View>
             </View>
           </TouchableOpacity>
         ))}
@@ -60,15 +73,52 @@ export default function CategoryGrid({ categories, onCategoryPress }: CategoryGr
 }
 
 const styles = StyleSheet.create({
-  container: { paddingVertical: Platform.OS === 'web' ? 80 : spacing.xxl, paddingHorizontal: HORIZONTAL_PADDING, backgroundColor: colors.background },
-  header: { alignItems: 'center', marginBottom: Platform.OS === 'web' ? 48 : spacing.xl },
-  sectionTitle: { fontFamily: fontFamilies.display, fontSize: Platform.OS === 'web' ? 56 : 36, lineHeight: Platform.OS === 'web' ? 64 : 40, color: colors.textPrimary, textAlign: 'center' },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -CARD_MARGIN / 2 },
-  card: { width: CARD_WIDTH, marginHorizontal: CARD_MARGIN / 2, marginBottom: CARD_MARGIN },
-  cardImageContainer: { width: '100%', aspectRatio: 4 / 3, overflow: 'hidden', ...shadows.card },
+  container: { 
+    paddingVertical: isWeb ? 80 : spacing.xxl, 
+    paddingHorizontal: HORIZONTAL_PADDING, 
+    backgroundColor: colors.background,
+  },
+  header: { 
+    alignItems: 'center', 
+    marginBottom: isWeb ? 48 : spacing.xl,
+  },
+  sectionTitle: { 
+    fontFamily: fontFamilies.display, 
+    fontSize: isWeb ? 56 : 36, 
+    lineHeight: isWeb ? 64 : 40, 
+    color: colors.textPrimary, 
+    textAlign: 'center',
+  },
+  grid: { 
+    flexDirection: 'row', 
+    flexWrap: 'wrap', 
+    marginHorizontal: -CARD_MARGIN / 2,
+  },
+  card: { 
+    marginBottom: CARD_MARGIN,
+  },
+  cardImageContainer: { 
+    width: '100%', 
+    aspectRatio: 4 / 3, 
+    overflow: 'hidden', 
+    ...shadows.card,
+  },
   cardImage: { width: '100%', height: '100%' },
   cardGradient: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.35)' },
-  cardContent: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: spacing.md },
-  cardTitle: { fontFamily: fontFamilies.display, fontSize: Platform.OS === 'web' ? 24 : 20, lineHeight: Platform.OS === 'web' ? 28 : 26, color: colors.textOnDark, textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
+  cardContent: { 
+    position: 'absolute', 
+    bottom: 0, 
+    left: 0, 
+    right: 0, 
+    padding: spacing.md,
+  },
+  cardTitle: { 
+    fontFamily: fontFamilies.display, 
+    fontSize: isWeb ? 24 : 20, 
+    lineHeight: isWeb ? 28 : 26, 
+    color: colors.textOnDark, 
+    textShadowColor: 'rgba(0,0,0,0.5)', 
+    textShadowOffset: { width: 0, height: 1 }, 
+    textShadowRadius: 3,
+  },
 });
-

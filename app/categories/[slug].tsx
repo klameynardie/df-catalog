@@ -11,16 +11,21 @@ import { fetchCategoryBySlug, fetchSubcategories, fetchProductsByCategory, fetch
 import { navigateToProduct, navigateToSubcategory, navigateToHome } from '@/lib/navigation';
 
 const isWeb = Platform.OS === 'web';
-const SIDEBAR_WIDTH = 280;
-const CONTENT_PADDING = isWeb ? 48 : spacing.lg;
-const PRODUCT_GAP = isWeb ? 24 : spacing.md;
 
-const DEFAULT_IMAGE = 'https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=800';
+// Images Unsplash de haute qualité pour événementiel/décoration
+const FALLBACK_IMAGES = [
+  'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&q=80',
+  'https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=800&q=80',
+  'https://images.unsplash.com/photo-1543007630-9710e4a00a20?w=800&q=80',
+  'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=800&q=80',
+  'https://images.unsplash.com/photo-1478146896981-b80fe463b330?w=800&q=80',
+  'https://images.unsplash.com/photo-1555244162-803834f70033?w=800&q=80',
+];
 
-const getProductImage = (product: Product): string => {
+const getProductImage = (product: Product, index: number = 0): string => {
   const url = product.product_image || product.image_url;
   if (url && url.trim() !== '' && url.startsWith('http')) return url;
-  return DEFAULT_IMAGE;
+  return FALLBACK_IMAGES[index % FALLBACK_IMAGES.length];
 };
 
 export default function CategoryPage() {
@@ -32,17 +37,44 @@ export default function CategoryPage() {
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   
+  // Responsive breakpoints
+  const isMobileView = screenWidth < 768;
+  const isTabletView = screenWidth >= 768 && screenWidth < 1024;
+  const isDesktopView = screenWidth >= 1024;
+  
+  // Calculs dynamiques basés sur la taille de l'écran
+  const contentPadding = isMobileView ? spacing.lg : 48;
+  const productGap = isMobileView ? spacing.md : 24;
+  const sidebarWidth = isDesktopView ? 280 : 0;
+  
+  // Nombre de colonnes selon la taille de l'écran
+  const getNumColumns = () => {
+    if (isMobileView) return 2;
+    if (isTabletView) return 3;
+    return 3; // Desktop
+  };
+  
+  const numColumns = getNumColumns();
+  
   // Calcul dynamique de la largeur des cards
   const getProductCardWidth = () => {
-    if (!isWeb) {
-      return (screenWidth - CONTENT_PADDING * 2 - PRODUCT_GAP) / 2;
+    if (isMobileView) {
+      return (screenWidth - contentPadding * 2 - productGap) / 2;
     }
-    // Desktop: 3 colonnes (zone contenu = écran - sidebar - paddings - gap entre sidebar et contenu)
-    const contentWidth = screenWidth - SIDEBAR_WIDTH - CONTENT_PADDING * 2 - spacing.xl;
-    return (contentWidth - PRODUCT_GAP * 2) / 3;
+    if (isTabletView) {
+      // Pas de sidebar sur tablette, mais layout similaire
+      const availableWidth = screenWidth - contentPadding * 2;
+      return (availableWidth - productGap * (numColumns - 1)) / numColumns;
+    }
+    // Desktop avec sidebar
+    const contentWidth = screenWidth - sidebarWidth - contentPadding * 2 - spacing.xl;
+    return (contentWidth - productGap * (numColumns - 1)) / numColumns;
   };
   
   const productCardWidth = getProductCardWidth();
+  
+  // Afficher la sidebar uniquement sur desktop large
+  const showSidebar = isDesktopView;
   
   // Filtres
   const [ambiances, setAmbiances] = useState<Ambiance[]>([]);
@@ -51,7 +83,7 @@ export default function CategoryPage() {
   const [selectedAmbiance, setSelectedAmbiance] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedMaterial, setSelectedMaterial] = useState<string | null>(null);
-  const [expandedFilter, setExpandedFilter] = useState<string | null>(isWeb ? 'ambiance' : null);
+  const [expandedFilter, setExpandedFilter] = useState<string | null>(isDesktopView ? 'ambiance' : null);
   const [showFiltersModal, setShowFiltersModal] = useState(false);
 
   useEffect(() => {
@@ -123,13 +155,13 @@ export default function CategoryPage() {
     </View>
   );
 
-  const renderProductCard = (item: Product) => (
+  const renderProductCard = (item: Product, index: number) => (
     <TouchableOpacity key={item.id} style={[styles.productCard, { width: productCardWidth }]} onPress={() => navigateToProduct(item.id)} activeOpacity={0.9}>
-      <View style={styles.productImageContainer}>
-        <Image source={{ uri: getProductImage(item) }} style={styles.productImage} contentFit="cover" transition={200} />
+      <View style={[styles.productImageContainer, { aspectRatio: isMobileView ? 3/4 : 4/5 }]}>
+        <Image source={{ uri: getProductImage(item, index) }} style={styles.productImage} contentFit="cover" transition={200} />
       </View>
       <View style={styles.productInfo}>
-        <Text style={styles.productName} numberOfLines={2}>{item.name}</Text>
+        <Text style={[styles.productName, { fontSize: isMobileView ? 16 : 20 }]} numberOfLines={2}>{item.name}</Text>
         <View style={styles.productTags}>
           {item.ambiance && <View style={styles.tag}><Text style={styles.tagText}>{item.ambiance}</Text></View>}
           {item.color && <View style={styles.tag}><Text style={styles.tagText}>{item.color}</Text></View>}
@@ -142,13 +174,17 @@ export default function CategoryPage() {
   if (loading) return <SafeAreaView style={styles.loadingContainer}><ActivityIndicator size="large" color={colors.textPrimary} /></SafeAreaView>;
   if (!category) return <SafeAreaView style={styles.container}><Header showBack title="Catégorie" /><View style={styles.emptyContainer}><Text>Catégorie non trouvée</Text></View></SafeAreaView>;
 
+  // Sur web, toujours afficher le header standard avec logo (même en vue mobile responsive)
+  const showBackButton = !isWeb && isMobileView;
+  const headerTitle = !isWeb && isMobileView ? category.name : undefined;
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <Header showBack={!isWeb} title={isWeb ? undefined : category.name} />
+      <Header showBack={showBackButton} title={headerTitle} />
       
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Breadcrumb */}
-        <View style={styles.breadcrumb}>
+        <View style={[styles.breadcrumb, { paddingHorizontal: contentPadding }]}>
           <TouchableOpacity onPress={navigateToHome} style={styles.breadcrumbItem}>
             <Ionicons name="home-outline" size={16} color={colors.textSecondary} />
             <Text style={styles.breadcrumbLink}>Accueil</Text>
@@ -159,12 +195,19 @@ export default function CategoryPage() {
 
         {/* Sous-catégories */}
         {subcategories.length > 0 && (
-          <View style={styles.subcategoriesSection}>
-            <Text style={styles.sectionTitle}>Sous-catégories</Text>
+          <View style={[styles.subcategoriesSection, { paddingHorizontal: contentPadding }]}>
+            <Text style={[styles.sectionTitle, { fontSize: isMobileView ? 22 : 28 }]}>Sous-catégories</Text>
             <View style={styles.subcategoriesGrid}>
               {subcategories.map((sub) => (
-                <TouchableOpacity key={sub.id} style={styles.subcategoryChip} onPress={() => navigateToSubcategory(slug!, sub.slug)}>
-                  <Text style={styles.subcategoryText}>{sub.name}</Text>
+                <TouchableOpacity 
+                  key={sub.id} 
+                  style={[styles.subcategoryChip, { 
+                    paddingHorizontal: isMobileView ? spacing.md : spacing.xl,
+                    paddingVertical: isMobileView ? spacing.sm : spacing.md,
+                  }]} 
+                  onPress={() => navigateToSubcategory(slug!, sub.slug)}
+                >
+                  <Text style={[styles.subcategoryText, { fontSize: isMobileView ? 14 : 16 }]}>{sub.name}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -172,10 +215,16 @@ export default function CategoryPage() {
         )}
 
         {/* Layout principal : Filtres + Produits */}
-        <View style={styles.mainLayout}>
-          {/* Sidebar Filtres (Desktop) */}
-          {isWeb && (
-            <View style={styles.sidebar}>
+        <View style={[
+          styles.mainLayout, 
+          { 
+            paddingHorizontal: contentPadding,
+            flexDirection: showSidebar ? 'row' : 'column',
+          }
+        ]}>
+          {/* Sidebar Filtres (Desktop uniquement) */}
+          {showSidebar && (
+            <View style={[styles.sidebar, { width: sidebarWidth }]}>
               <Text style={styles.sectionTitle}>Filtres</Text>
               {hasActiveFilters && (
                 <TouchableOpacity style={styles.clearFiltersButton} onPress={clearFilters}>
@@ -189,10 +238,11 @@ export default function CategoryPage() {
           )}
 
           {/* Grille Produits */}
-          <View style={styles.productsSection}>
+          <View style={[styles.productsSection, { paddingLeft: showSidebar ? spacing.xl : 0 }]}>
             <View style={styles.productsHeader}>
               <Text style={styles.productsCount}>{filteredProducts.length} produit{filteredProducts.length > 1 ? 's' : ''}</Text>
-              {!isWeb && (
+              {/* Bouton Filtres pour mobile et tablette */}
+              {!showSidebar && (
                 <TouchableOpacity style={styles.filterButton} onPress={() => setShowFiltersModal(true)}>
                   <Ionicons name="options-outline" size={18} color={colors.textPrimary} />
                   <Text style={styles.filterButtonText}>Filtres</Text>
@@ -202,7 +252,7 @@ export default function CategoryPage() {
             </View>
             
             {filteredProducts.length > 0 ? (
-              <View style={styles.productsGrid}>
+              <View style={[styles.productsGrid, { gap: productGap }]}>
                 {filteredProducts.map(renderProductCard)}
               </View>
             ) : (
@@ -221,7 +271,7 @@ export default function CategoryPage() {
         <Footer />
       </ScrollView>
 
-      {/* Modal Filtres Mobile */}
+      {/* Modal Filtres Mobile/Tablette */}
       <Modal visible={showFiltersModal} animationType="slide" transparent={false}>
         <SafeAreaView style={styles.filterModalContainer}>
           <View style={styles.filterModalHeader}>
@@ -270,11 +320,11 @@ const styles = StyleSheet.create({
   breadcrumb: { 
     flexDirection: 'row', 
     alignItems: 'center', 
-    paddingHorizontal: CONTENT_PADDING, 
     paddingVertical: spacing.md, 
     gap: spacing.xs,
     borderBottomWidth: 1,
     borderBottomColor: colors.borderSubtle,
+    flexWrap: 'wrap',
   },
   breadcrumbItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   breadcrumbLink: { fontFamily: fontFamilies.body, fontSize: 14, color: colors.textSecondary },
@@ -283,12 +333,10 @@ const styles = StyleSheet.create({
 
   // Sous-catégories
   subcategoriesSection: { 
-    paddingHorizontal: CONTENT_PADDING, 
-    paddingVertical: isWeb ? spacing.xl : spacing.lg,
+    paddingVertical: spacing.lg,
   },
   sectionTitle: { 
     fontFamily: fontFamilies.display, 
-    fontSize: isWeb ? 28 : 22, 
     color: colors.textPrimary, 
     marginBottom: spacing.lg,
   },
@@ -298,29 +346,23 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   subcategoryChip: { 
-    paddingHorizontal: isWeb ? spacing.xl : spacing.md, 
-    paddingVertical: isWeb ? spacing.md : spacing.sm, 
     borderWidth: 1, 
     borderColor: colors.borderSubtle,
     backgroundColor: colors.background,
   },
   subcategoryText: { 
     fontFamily: fontFamilies.body,
-    fontSize: isWeb ? 16 : 14, 
     fontWeight: '500', 
     color: colors.textPrimary,
   },
 
   // Layout principal
   mainLayout: { 
-    flexDirection: isWeb ? 'row' : 'column', 
-    paddingHorizontal: CONTENT_PADDING,
     paddingBottom: spacing.xxl,
   },
 
   // Sidebar Filtres
   sidebar: { 
-    width: SIDEBAR_WIDTH, 
     paddingRight: spacing.xl,
     borderRightWidth: 1,
     borderRightColor: colors.borderSubtle,
@@ -376,7 +418,6 @@ const styles = StyleSheet.create({
   // Produits
   productsSection: { 
     flex: 1,
-    paddingLeft: isWeb ? spacing.xl : 0,
   },
   productsHeader: { 
     flexDirection: 'row', 
@@ -392,15 +433,12 @@ const styles = StyleSheet.create({
   productsGrid: { 
     flexDirection: 'row', 
     flexWrap: 'wrap', 
-    gap: PRODUCT_GAP,
   },
   productCard: { 
     backgroundColor: colors.background,
-    marginBottom: PRODUCT_GAP,
   },
   productImageContainer: { 
     width: '100%', 
-    aspectRatio: isWeb ? 4 / 5 : 3 / 4, 
     overflow: 'hidden',
     backgroundColor: colors.surfaceMuted,
   },
@@ -408,7 +446,6 @@ const styles = StyleSheet.create({
   productInfo: { paddingVertical: spacing.md },
   productName: { 
     fontFamily: fontFamilies.display, 
-    fontSize: isWeb ? 20 : 16, 
     color: colors.textPrimary,
     marginBottom: spacing.sm,
   },
@@ -453,7 +490,7 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
 
-  // Bouton Filtres Mobile
+  // Bouton Filtres Mobile/Tablette
   filterButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -476,7 +513,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.brandPrimary,
   },
 
-  // Modal Filtres Mobile
+  // Modal Filtres Mobile/Tablette
   filterModalContainer: {
     flex: 1,
     backgroundColor: colors.background,

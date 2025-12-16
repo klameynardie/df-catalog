@@ -12,11 +12,24 @@ import { fetchProductById, fetchRelatedProducts, type Product } from '@/lib/supa
 import { navigateToProduct, navigateToHome, navigateToCategory, navigateToCart, goBack } from '@/lib/navigation';
 
 const isWeb = Platform.OS === 'web';
-const CONTENT_PADDING = isWeb ? 48 : spacing.lg;
-const DEFAULT_IMAGE = 'https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=800';
+
+// Images Unsplash de haute qualité pour événementiel/décoration
+const FALLBACK_IMAGES = [
+  'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&q=80', // Bar élégant
+  'https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=800&q=80', // Bar moderne
+  'https://images.unsplash.com/photo-1543007630-9710e4a00a20?w=800&q=80', // Décoration événement
+  'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=800&q=80', // Réception mariage
+  'https://images.unsplash.com/photo-1478146896981-b80fe463b330?w=800&q=80', // Salon élégant
+  'https://images.unsplash.com/photo-1555244162-803834f70033?w=800&q=80', // Table décorée
+];
+
+const DEFAULT_IMAGE = FALLBACK_IMAGES[0];
 
 const getValidImageUrl = (url: string | undefined | null): string => {
-  if (url && url.trim() !== '' && url.startsWith('http')) return url;
+  if (!url || url.trim() === '') return DEFAULT_IMAGE;
+  // URL complète valide
+  if (url.startsWith('http')) return url;
+  // Les chemins relatifs Supabase ne fonctionnent pas, utiliser image par défaut
   return DEFAULT_IMAGE;
 };
 
@@ -31,9 +44,27 @@ export default function ProductDetailPage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showAddedModal, setShowAddedModal] = useState(false);
 
-  // Calculs responsive
-  const galleryWidth = isWeb ? Math.min(screenWidth * 0.45, 600) : screenWidth;
-  const thumbnailSize = isWeb ? 100 : 64;
+  // Responsive breakpoints
+  const isMobileView = screenWidth < 768;
+  const isTabletView = screenWidth >= 768 && screenWidth < 1024;
+  const isDesktopView = screenWidth >= 1024;
+  
+  // Layout 2 colonnes uniquement sur desktop large
+  const isTwoColumnLayout = isDesktopView;
+  
+  // Calculs dynamiques basés sur la taille de l'écran
+  const contentPadding = isMobileView ? spacing.lg : 48;
+  
+  // Calculs responsive pour la galerie
+  const galleryWidth = isTwoColumnLayout ? Math.min(screenWidth * 0.45, 600) : screenWidth - contentPadding * 2;
+  const thumbnailSize = isMobileView ? 80 : 120;
+  
+  // Tailles de police dynamiques
+  const productNameSize = isMobileView ? 28 : 40;
+  const descriptionSize = isMobileView ? 16 : 18;
+  const sectionTitleSize = isMobileView ? 18 : 22;
+  const relatedTitleSize = isMobileView ? 24 : 32;
+  const relatedCardWidth = isMobileView ? 140 : (isTabletView ? 160 : 200);
 
   useEffect(() => {
     if (id) loadProduct();
@@ -52,13 +83,31 @@ export default function ProductDetailPage() {
   const getAllImages = (): string[] => {
     if (!product) return [];
     const images: string[] = [];
-    images.push(getValidImageUrl(product.product_image || product.image_url));
-    if (product.ambient_images) {
+    
+    // Image principale
+    const mainImage = getValidImageUrl(product.product_image || product.image_url);
+    images.push(mainImage);
+    
+    // Images d'ambiance valides
+    if (product.ambient_images && product.ambient_images.length > 0) {
       product.ambient_images.forEach(img => {
         const validUrl = getValidImageUrl(img);
-        if (validUrl !== DEFAULT_IMAGE) images.push(validUrl);
+        if (validUrl.startsWith('http') && !validUrl.includes('pexels') && !images.includes(validUrl)) {
+          images.push(validUrl);
+        }
       });
     }
+    
+    // Ajouter des images de démonstration variées si on n'a qu'une image
+    if (images.length === 1) {
+      // Sélectionner 2 images différentes basées sur l'ID du produit pour varier
+      const productHash = product.id.charCodeAt(0) % FALLBACK_IMAGES.length;
+      const img1 = FALLBACK_IMAGES[(productHash + 1) % FALLBACK_IMAGES.length];
+      const img2 = FALLBACK_IMAGES[(productHash + 2) % FALLBACK_IMAGES.length];
+      if (!images.includes(img1)) images.push(img1);
+      if (!images.includes(img2)) images.push(img2);
+    }
+    
     return images;
   };
 
@@ -96,7 +145,7 @@ export default function ProductDetailPage() {
       
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Breadcrumb */}
-        <View style={styles.breadcrumb}>
+        <View style={[styles.breadcrumb, { paddingHorizontal: contentPadding }]}>
           <TouchableOpacity onPress={navigateToHome} style={styles.breadcrumbItem}>
             <Ionicons name="home-outline" size={16} color={colors.textSecondary} />
             <Text style={styles.breadcrumbLink}>Accueil</Text>
@@ -114,9 +163,17 @@ export default function ProductDetailPage() {
         </View>
 
         {/* Layout principal */}
-        <View style={styles.mainLayout}>
+        <View style={[
+          styles.mainLayout, 
+          { 
+            paddingHorizontal: contentPadding,
+            flexDirection: isTwoColumnLayout ? 'row' : 'column',
+            gap: isTwoColumnLayout ? spacing.xxl : 0,
+            paddingVertical: isTwoColumnLayout ? spacing.xl : 0,
+          }
+        ]}>
           {/* Colonne Gauche - Galerie */}
-          <View style={[styles.galleryColumn, isWeb && { width: galleryWidth }]}>
+          <View style={[styles.galleryColumn, isTwoColumnLayout && { width: galleryWidth }]}>
             <View style={styles.galleryContainer}>
               <Image 
                 source={{ uri: allImages[currentImageIndex] || DEFAULT_IMAGE }} 
@@ -157,48 +214,48 @@ export default function ProductDetailPage() {
           </View>
 
           {/* Colonne Droite - Infos */}
-          <View style={styles.infoColumn}>
-            <Text style={styles.productName}>{product.name}</Text>
+          <View style={[styles.infoColumn, { paddingVertical: isTwoColumnLayout ? 0 : spacing.lg }]}>
+            <Text style={[styles.productName, { fontSize: productNameSize, lineHeight: productNameSize * 1.2 }]}>{product.name}</Text>
             
             {product.description && (
-              <Text style={styles.productDescription}>{product.description}</Text>
+              <Text style={[styles.productDescription, { fontSize: descriptionSize, lineHeight: descriptionSize * 1.5 }]}>{product.description}</Text>
             )}
 
             {/* Attributs en grille */}
-            <View style={styles.attributesGrid}>
+            <View style={[styles.attributesGrid, { gap: isMobileView ? spacing.xl : spacing.xxl }]}>
               {product.ambiance && (
                 <View style={styles.attribute}>
-                  <Text style={styles.attributeLabel}>Ambiance</Text>
+                  <Text style={[styles.attributeLabel, { fontSize: isMobileView ? 14 : 16 }]}>Ambiance</Text>
                   <Text style={styles.attributeValue}>{product.ambiance}</Text>
                 </View>
               )}
               {product.color && (
                 <View style={styles.attribute}>
-                  <Text style={styles.attributeLabel}>Couleur</Text>
+                  <Text style={[styles.attributeLabel, { fontSize: isMobileView ? 14 : 16 }]}>Couleur</Text>
                   <Text style={styles.attributeValue}>{product.color}</Text>
                 </View>
               )}
             </View>
             {product.materials && (
               <View style={styles.attributeFull}>
-                <Text style={styles.attributeLabel}>Matière</Text>
+                <Text style={[styles.attributeLabel, { fontSize: isMobileView ? 14 : 16 }]}>Matière</Text>
                 <Text style={styles.attributeValue}>{product.materials}</Text>
               </View>
             )}
 
             {/* Informations Techniques */}
             {(product.dimensions || product.weight) && (
-              <View style={styles.technicalSection}>
-                <Text style={styles.technicalTitle}>Informations Techniques</Text>
+              <View style={[styles.technicalSection, { padding: isMobileView ? spacing.lg : spacing.xl }]}>
+                <Text style={[styles.technicalTitle, { fontSize: sectionTitleSize }]}>Informations Techniques</Text>
                 {product.dimensions && (
                   <View style={styles.technicalRow}>
-                    <Text style={styles.technicalLabel}>Dimensions</Text>
+                    <Text style={[styles.technicalLabel, { fontSize: isMobileView ? 14 : 16 }]}>Dimensions</Text>
                     <Text style={styles.technicalValue}>{product.dimensions}</Text>
                   </View>
                 )}
                 {product.weight && (
                   <View style={styles.technicalRow}>
-                    <Text style={styles.technicalLabel}>Poids</Text>
+                    <Text style={[styles.technicalLabel, { fontSize: isMobileView ? 14 : 16 }]}>Poids</Text>
                     <Text style={styles.technicalValue}>{product.weight}</Text>
                   </View>
                 )}
@@ -208,7 +265,7 @@ export default function ProductDetailPage() {
             {/* Informations Complémentaires */}
             {product.additional_info && (
               <View style={styles.additionalSection}>
-                <Text style={styles.additionalTitle}>Informations Complémentaires</Text>
+                <Text style={[styles.additionalTitle, { fontSize: isMobileView ? 14 : 16 }]}>Informations Complémentaires</Text>
                 <Text style={styles.additionalText}>{product.additional_info}</Text>
               </View>
             )}
@@ -217,28 +274,37 @@ export default function ProductDetailPage() {
             <View style={styles.addToCartSection}>
               <View style={styles.quantitySelector}>
                 <TouchableOpacity 
-                  style={styles.quantityButton} 
+                  style={[styles.quantityButton, { width: isMobileView ? 44 : 50, height: isMobileView ? 44 : 50 }]} 
                   onPress={() => setQuantity(Math.max(1, quantity - 1))}
                 >
                   <Text style={styles.quantityButtonText}>−</Text>
                 </TouchableOpacity>
                 <TextInput 
-                  style={styles.quantityInput} 
+                  style={[styles.quantityInput, { width: isMobileView ? 50 : 60, height: isMobileView ? 44 : 50 }]} 
                   value={quantity.toString()} 
                   onChangeText={(t) => setQuantity(Math.max(1, parseInt(t) || 1))} 
                   keyboardType="number-pad" 
                 />
                 <TouchableOpacity 
-                  style={styles.quantityButton} 
+                  style={[styles.quantityButton, { width: isMobileView ? 44 : 50, height: isMobileView ? 44 : 50 }]} 
                   onPress={() => setQuantity(quantity + 1)}
                 >
                   <Text style={styles.quantityButtonText}>+</Text>
                 </TouchableOpacity>
               </View>
               
-              <TouchableOpacity style={styles.addToCartButton} onPress={handleAddToCart}>
+              <TouchableOpacity 
+                style={[
+                  styles.addToCartButton, 
+                  { 
+                    height: isMobileView ? 44 : 50,
+                    borderRadius: isMobileView ? 4 : 30,
+                  }
+                ]} 
+                onPress={handleAddToCart}
+              >
                 <Ionicons name="cart-outline" size={20} color={colors.textOnDark} />
-                <Text style={styles.addToCartText}>Ajouter au panier</Text>
+                <Text style={[styles.addToCartText, { fontSize: isMobileView ? 14 : 16 }]}>Ajouter au panier</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -247,12 +313,12 @@ export default function ProductDetailPage() {
         {/* Produits similaires */}
         {relatedProducts.length > 0 && (
           <View style={styles.relatedSection}>
-            <Text style={styles.relatedTitle}>Vous aimerez aussi</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.relatedScroll}>
+            <Text style={[styles.relatedTitle, { fontSize: relatedTitleSize, paddingHorizontal: contentPadding }]}>Vous aimerez aussi</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.relatedScroll, { paddingHorizontal: contentPadding, gap: isMobileView ? spacing.md : spacing.lg }]}>
               {relatedProducts.map((item) => (
-                <TouchableOpacity key={item.id} style={styles.relatedCard} onPress={() => navigateToProduct(item.id)}>
+                <TouchableOpacity key={item.id} style={[styles.relatedCard, { width: relatedCardWidth }]} onPress={() => navigateToProduct(item.id)}>
                   <Image source={{ uri: getValidImageUrl(item.product_image || item.image_url) }} style={styles.relatedImage} contentFit="cover" />
-                  <Text style={styles.relatedName} numberOfLines={2}>{item.name}</Text>
+                  <Text style={[styles.relatedName, { fontSize: isMobileView ? 14 : 16 }]} numberOfLines={2}>{item.name}</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -322,7 +388,6 @@ const styles = StyleSheet.create({
   breadcrumb: { 
     flexDirection: 'row', 
     alignItems: 'center', 
-    paddingHorizontal: CONTENT_PADDING, 
     paddingVertical: spacing.md, 
     gap: spacing.xs,
     borderBottomWidth: 1,
@@ -335,65 +400,71 @@ const styles = StyleSheet.create({
   breadcrumbCurrent: { fontFamily: fontFamilies.body, fontSize: 14, color: colors.textPrimary, fontWeight: '500' },
 
   // Layout principal
-  mainLayout: { 
-    flexDirection: isWeb ? 'row' : 'column',
-    paddingHorizontal: CONTENT_PADDING,
-    paddingVertical: isWeb ? spacing.xl : 0,
-    gap: isWeb ? spacing.xxl : 0,
-  },
+  mainLayout: {},
 
   // Galerie
   galleryColumn: { 
-    width: isWeb ? undefined : '100%',
+    width: '100%',
   },
   galleryContainer: { 
     position: 'relative', 
     width: '100%', 
     aspectRatio: 1, 
     backgroundColor: colors.surfaceMuted,
+    borderRadius: 16,
+    overflow: 'hidden',
   },
   mainImage: { width: '100%', height: '100%' },
   imageDots: { 
     position: 'absolute', 
-    bottom: spacing.md, 
+    bottom: spacing.lg, 
     flexDirection: 'row', 
     justifyContent: 'center', 
     width: '100%', 
-    gap: spacing.xs,
+    gap: spacing.sm,
   },
-  imageDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.5)' },
-  imageDotActive: { backgroundColor: colors.textOnDark, width: 24 },
+  imageDot: { 
+    width: 10, 
+    height: 10, 
+    borderRadius: 5, 
+    backgroundColor: 'rgba(255,255,255,0.5)',
+  },
+  imageDotActive: { 
+    backgroundColor: colors.textOnDark, 
+    width: 32,
+  },
   thumbnailsContainer: { 
     flexDirection: 'row', 
     flexWrap: 'wrap',
-    paddingVertical: spacing.md, 
-    gap: spacing.sm,
+    paddingVertical: spacing.lg, 
+    gap: spacing.md,
   },
   thumbnail: { 
-    borderRadius: 4, 
+    borderRadius: 16, 
     overflow: 'hidden', 
-    borderWidth: 2, 
+    borderWidth: 3, 
     borderColor: 'transparent',
+    backgroundColor: colors.surfaceMuted,
   },
-  thumbnailActive: { borderColor: colors.textPrimary },
-  thumbnailImage: { width: '100%', height: '100%' },
+  thumbnailActive: { 
+    borderColor: colors.textPrimary,
+  },
+  thumbnailImage: { 
+    width: '100%', 
+    height: '100%',
+  },
 
   // Infos produit
   infoColumn: { 
     flex: 1,
-    paddingVertical: isWeb ? 0 : spacing.lg,
   },
   productName: { 
     fontFamily: fontFamilies.display, 
-    fontSize: isWeb ? 40 : 28, 
-    lineHeight: isWeb ? 48 : 34,
     color: colors.textPrimary, 
     marginBottom: spacing.lg,
   },
   productDescription: { 
     fontFamily: fontFamilies.body,
-    fontSize: isWeb ? 18 : 16, 
-    lineHeight: isWeb ? 28 : 24, 
     color: colors.textSecondary, 
     marginBottom: spacing.xl,
   },
@@ -401,7 +472,6 @@ const styles = StyleSheet.create({
   // Attributs
   attributesGrid: { 
     flexDirection: 'row', 
-    gap: isWeb ? spacing.xxl : spacing.xl,
     marginBottom: spacing.lg,
   },
   attribute: { 
@@ -412,7 +482,6 @@ const styles = StyleSheet.create({
   },
   attributeLabel: { 
     fontFamily: fontFamilies.display,
-    fontSize: isWeb ? 16 : 14, 
     color: colors.textMuted, 
     marginBottom: spacing.xs,
   },
@@ -426,14 +495,12 @@ const styles = StyleSheet.create({
   // Infos techniques
   technicalSection: { 
     backgroundColor: colors.surfaceMuted, 
-    padding: isWeb ? spacing.xl : spacing.lg, 
     marginBottom: spacing.lg,
     borderWidth: 1,
     borderColor: colors.borderSubtle,
   },
   technicalTitle: { 
     fontFamily: fontFamilies.display, 
-    fontSize: isWeb ? 22 : 18, 
     color: colors.textPrimary, 
     marginBottom: spacing.md,
   },
@@ -442,7 +509,6 @@ const styles = StyleSheet.create({
   },
   technicalLabel: { 
     fontFamily: fontFamilies.display,
-    fontSize: isWeb ? 16 : 14, 
     color: colors.textMuted,
     marginBottom: spacing.xxs,
   },
@@ -459,7 +525,6 @@ const styles = StyleSheet.create({
   },
   additionalTitle: { 
     fontFamily: fontFamilies.display,
-    fontSize: isWeb ? 16 : 14, 
     color: colors.textMuted,
     marginBottom: spacing.xs,
   },
@@ -484,8 +549,6 @@ const styles = StyleSheet.create({
     borderColor: colors.borderSubtle,
   },
   quantityButton: { 
-    width: isWeb ? 50 : 44, 
-    height: isWeb ? 50 : 44, 
     justifyContent: 'center', 
     alignItems: 'center',
   },
@@ -495,8 +558,6 @@ const styles = StyleSheet.create({
     fontWeight: '300',
   },
   quantityInput: { 
-    width: isWeb ? 60 : 50, 
-    height: isWeb ? 50 : 44, 
     textAlign: 'center', 
     fontSize: 16, 
     fontWeight: '500', 
@@ -512,12 +573,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center', 
     alignItems: 'center', 
     gap: spacing.sm,
-    height: isWeb ? 50 : 44,
-    borderRadius: isWeb ? 30 : 4,
   },
   addToCartText: { 
     fontFamily: fontFamilies.body,
-    fontSize: isWeb ? 16 : 14,
     fontWeight: '600', 
     color: colors.textOnDark, 
     letterSpacing: 0.5,
@@ -530,17 +588,11 @@ const styles = StyleSheet.create({
   },
   relatedTitle: { 
     fontFamily: fontFamilies.display, 
-    fontSize: isWeb ? 32 : 24, 
     color: colors.textPrimary, 
-    paddingHorizontal: CONTENT_PADDING, 
     marginBottom: spacing.lg,
   },
-  relatedScroll: { 
-    paddingHorizontal: CONTENT_PADDING, 
-    gap: isWeb ? spacing.lg : spacing.md,
-  },
+  relatedScroll: {},
   relatedCard: { 
-    width: isWeb ? 200 : 140, 
     backgroundColor: colors.background,
   },
   relatedImage: { 
@@ -549,7 +601,6 @@ const styles = StyleSheet.create({
   },
   relatedName: { 
     fontFamily: fontFamilies.display,
-    fontSize: isWeb ? 16 : 14, 
     color: colors.textPrimary, 
     padding: spacing.sm,
   },
